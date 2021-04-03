@@ -19,7 +19,8 @@ App can do the following:
 ### Running through Docker
 - Navigate to docker file directory
 - Run `docker build . -t tech-task-td` to build docker image
-- Run `docker run  -p 8000:8000 tech-task-td` to run the application 
+- Run `docker run  -d -p 8000:8000 --name tech-task-td-cont tech-task-td` to run the application 
+- Run `docker exec -it tech-task-td-cont python manage.py migrate` to migrate DB 
 - open ***http://localhost:8000/***
 
 ### Demo
