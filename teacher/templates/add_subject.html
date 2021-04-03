@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Add new subject
+{% endblock %}
+
+{% block page_content %}
+
+
+    <br><br>
+
+    <section class="content">
+        <form action="" method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-secondary">Add Subject</button>
+        </form>
+    </section>
+
+
+
+{% endblock %}

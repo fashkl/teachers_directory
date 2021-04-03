@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Import File
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="row m-5">
+        <h2 class="col-8 offset-2 ">Import teachers form CSV</h2>
+    </div>
+
+    <div class="row">
+        {% if messages %}
+            {% for message in messages %}
+                <strong class="alert alert-danger mt-3">{{ message|safe }}</strong>
+                <br><br>
+            {% endfor %}
+        {% else %}
+            {{ order }}
+            <form class="col-8 offset-2" action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="file">Upload CSV File</label>
+                    <input type="file" class="form-control-file" name="file" id="file" aria-describedby="fileHelp">
+                    <small id="fileHelp" class="form-text text-muted">Only Accepts CSV file</small>
+                </div>
+                <button class="btn btn-secondary mr-3" type="submit"> Upload</button>
+            </form>
+        {% endif %}
+    </div>
+{% endblock %}
