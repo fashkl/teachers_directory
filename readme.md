@@ -8,10 +8,11 @@ App can do the following:
 
 ### Requirements
 - Python > 3.7 
-- Docker
+- Docker (optional)
 
 ### Quickstart
 - Run `pip install -r requirements.txt`
+- Run `python manage.py migrate`
 - Run `python manage.py runserver 8000`
 - open ***http://localhost:8000***
 
@@ -21,3 +22,6 @@ App can do the following:
 - Run `docker run  -p 8000:8000 tech-task-td` to run the application 
 - open ***http://localhost:8000/***
 
+### Demo
+- ***https://teachers-directory.herokuapp.com/***
+- Admin user: `kali` password: `kali`
