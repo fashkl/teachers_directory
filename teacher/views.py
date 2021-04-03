@@ -129,7 +129,7 @@ def teacher_upload(request):
         if email_exists is not None:
             failed = row['First Name'] + ' ' + row['Last Name'] + " has an email that already exists. "
             messages.error(request, failed)
-            break
+            continue
 
         # add a teacher if he/she does not have a duplicate Phone Number
         try:
@@ -140,14 +140,14 @@ def teacher_upload(request):
         if phone_number is not None:
             failed = row['First Name'] + ' ' + row['Last Name'] + " has an Phone Number that already exists. "
             messages.error(request, failed)
-            break
+            continue
 
         # add a teacher if he/she has 5 subjects or less
         subjects = row['Subjects taught'].split(',')
         if len(subjects) > 5:
             failed = row['First Name'] + ' ' + row['Last Name'] + " has more than 5 subjects. "
             messages.error(request, failed)
-            break
+            continue
 
         # create the subject if it does not exist
         subjects_per_line = []
