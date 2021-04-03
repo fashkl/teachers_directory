@@ -1,4 +1,4 @@
-Hello Digital&Code !  
+Teachers Directory Management System!  
 
 App can do the following:  
 - Add subject individually from admin panel or directly for logged-in user
