@@ -163,7 +163,8 @@ def teacher_upload(request):
                 row['Profile picture'] = 'default.jpg'
             elif os.path.isfile('images/images/' + row['Profile picture']) is False:
                 """
-                tried to ignore case sensitivity of image extensions if same extension `example.JPG & example.jpg`, but i found in linux systems FS both are completely different files
+                tried to ignore case sensitivity of image extensions if same extension `example.JPG & example.jpg`, 
+                but i found in linux FS treats both as completely different files
                 """
                 if row["Profile picture"] in zip_object.namelist():
                     zip_object.extract(row["Profile picture"], 'images/images/')
