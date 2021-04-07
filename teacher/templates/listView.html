@@ -19,7 +19,7 @@
 
         <form method="GET" class="d-flex form-control">
             {% csrf_token %}
-            {{ filter.form | bootstrap}}
+            {{ filter.form | bootstrap }}
             <input type="submit" value="Filter" class="btn btn-primary">
         </form>
         <br>

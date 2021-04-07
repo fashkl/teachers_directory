@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 import unicodecsv as csv
 import os
 
-from teacher.models import Teacher, Subject
+from .models import *
 from .filters import TeacherFilter
 from .forms import *
 
@@ -116,31 +116,13 @@ def teacher_upload(request):
             invalid_data += 1
             break
 
+        if row['Phone Number'].isspace() or row['Phone Number'] is None or len(row['Phone Number']) == 0:
+            invalid_data += 1
+            break
+
         if row['Profile picture'].isspace() or row['Profile picture'] is None or len(
                 row['Profile picture']) == 0 or os.path.isfile('images/images/' + row['Profile picture']) is False:
             row['Profile picture'] = 'default.jpg'
-
-        # add a teacher if he/she does not have a duplicate email
-        try:
-            email_exists = Teacher.objects.get(email=row['Email Address'])
-        except Teacher.DoesNotExist:
-            email_exists = None
-
-        if email_exists is not None:
-            failed = row['First Name'] + ' ' + row['Last Name'] + " has an email that already exists. "
-            messages.error(request, failed)
-            continue
-
-        # add a teacher if he/she does not have a duplicate Phone Number
-        try:
-            phone_number = Teacher.objects.get(phone_number=row['Phone Number'])
-        except Teacher.DoesNotExist:
-            phone_number = None
-
-        if phone_number is not None:
-            failed = row['First Name'] + ' ' + row['Last Name'] + " has an Phone Number that already exists. "
-            messages.error(request, failed)
-            continue
 
         # add a teacher if he/she has 5 subjects or less
         subjects = row['Subjects taught'].split(',')
@@ -149,28 +131,24 @@ def teacher_upload(request):
             messages.error(request, failed)
             continue
 
-        # create the subject if it does not exist
+        # get or create the Teacher if it's Email does not exist
+        new_teacher, created = Teacher.objects.get_or_create(email=row['Email Address'])
+        if created is False:
+            failed = row['First Name'] + ' ' + row['Last Name'] + " has an email that already exists. "
+            messages.error(request, failed)
+            continue
+
+        # get or create the subject if it does not exist
         subjects_per_line = []
         for subject in subjects:
-            try:
-                subject_exists = Subject.objects.filter(name=subject.strip().capitalize()).first()
-            except Subject.DoesNotExist:
-                subject_exists = None
+            new_subject, subject_created = Subject.objects.get_or_create(name=subject.strip().capitalize())
+            subjects_per_line.append(new_subject)
 
-            if subject_exists is None:
-                new_subject = Subject.objects.create(name=subject.strip().capitalize())
-                subjects_per_line.append(new_subject)
-            else:
-                subjects_per_line.append(subject_exists)
-
-        new_teacher = Teacher.objects.create(
-            first_name=row['First Name'],
-            last_name=row['Last Name'],
-            email=row['Email Address'],
-            room_number=row['Room Number'],
-            phone_number=row['Phone Number'],
-            image='images/' + row['Profile picture'],
-        )
+        new_teacher.first_name = row['First Name']
+        new_teacher.last_name = row['Last Name']
+        new_teacher.room_number = row['Room Number']
+        new_teacher.phone_number = row['Phone Number']
+        new_teacher.image = 'images/' + row['Profile picture']
 
         if len(subjects_per_line) > 0:
             for subject in subjects_per_line:
