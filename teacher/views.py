@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 import unicodecsv as csv
 import os
+from zipfile import ZipFile
 
 from .models import *
 from .filters import TeacherFilter
@@ -94,74 +95,87 @@ def teacher_upload(request):
         return render(request, template, prompt)
 
     csv_file = request.FILES['file']
+    zip_file = request.FILES['zip_file']
+
     if not csv_file.name.endswith('.csv'):
-        messages.error(request, 'CSV file only allowed')
+        messages.error(request, 'Sorry!, CSV file only allowed')
+        return render(request, template, prompt)
+
+    if not zip_file.name.endswith('.zip'):
+        messages.error(request, 'Sorry!, Zip file only allowed')
+        return render(request, template, prompt)
 
     file_lines = csv_file.read().splitlines()
 
     reader = csv.DictReader(file_lines)
-    invalid_data = 0
     success_import = 0
-    for row in reader:
 
-        if row['First Name'].isspace() or row['First Name'] is None or len(row['First Name']) == 0:
-            invalid_data += 1
-            break
+    # opening the zip file in READ mode extract images files in media directory
+    with ZipFile(zip_file, 'r') as zip_object:
 
-        if row['Last Name'].isspace() or row['Last Name'] is None or len(row['Last Name']) == 0:
-            invalid_data += 1
-            break
+        print(zip_object.namelist())
+        print(zip_object.infolist())
 
-        if row['Email Address'].isspace() or row['Email Address'] is None or len(row['Email Address']) == 0:
-            invalid_data += 1
-            break
+        for row in reader:
 
-        if row['Phone Number'].isspace() or row['Phone Number'] is None or len(row['Phone Number']) == 0:
-            invalid_data += 1
-            break
+            if row['First Name'].isspace() or row['First Name'] is None or len(row['First Name']) == 0:
+                break
 
-        if row['Profile picture'].isspace() or row['Profile picture'] is None or len(
-                row['Profile picture']) == 0 or os.path.isfile('images/images/' + row['Profile picture']) is False:
-            row['Profile picture'] = 'default.jpg'
+            if row['Last Name'].isspace() or row['Last Name'] is None or len(row['Last Name']) == 0:
+                break
 
-        # add a teacher if he/she has 5 subjects or less
-        subjects = row['Subjects taught'].split(',')
-        if len(subjects) > 5:
-            failed = row['First Name'] + ' ' + row['Last Name'] + " has more than 5 subjects. "
-            messages.error(request, failed)
-            continue
+            if row['Email Address'].isspace() or row['Email Address'] is None or len(row['Email Address']) == 0:
+                break
 
-        # get or create the Teacher if it's Email does not exist
-        new_teacher, created = Teacher.objects.get_or_create(email=row['Email Address'])
-        if created is False:
-            failed = row['First Name'] + ' ' + row['Last Name'] + " has an email that already exists. "
-            messages.error(request, failed)
-            continue
+            if row['Phone Number'].isspace() or row['Phone Number'] is None or len(row['Phone Number']) == 0:
+                break
 
-        # get or create the subject if it does not exist
-        subjects_per_line = []
-        for subject in subjects:
-            new_subject, subject_created = Subject.objects.get_or_create(name=subject.strip().capitalize())
-            subjects_per_line.append(new_subject)
+            # check if the teacher has 5 subjects or less
+            subjects = row['Subjects taught'].split(',')
+            if len(subjects) > 5:
+                failed = row['First Name'] + ' ' + row['Last Name'] + " has more than 5 subjects. "
+                messages.error(request, failed)
+                continue
 
-        new_teacher.first_name = row['First Name']
-        new_teacher.last_name = row['Last Name']
-        new_teacher.room_number = row['Room Number']
-        new_teacher.phone_number = row['Phone Number']
-        new_teacher.image = 'images/' + row['Profile picture']
+            # get or create the Teacher if it's Email does not exist
+            new_teacher, teacher_created = Teacher.objects.get_or_create(email=row['Email Address'])
+            if teacher_created is False:
+                failed = row['First Name'] + ' ' + row['Last Name'] + " has an email that already exists. "
+                messages.error(request, failed)
+                continue
 
-        if len(subjects_per_line) > 0:
-            for subject in subjects_per_line:
-                new_teacher.subjects.add(Subject.objects.get(name=str(subject).strip().capitalize()))
+            # get or create the subject if it does not exist
+            subjects_per_row = []
+            for subject in subjects:
+                new_subject, subject_created = Subject.objects.get_or_create(name=subject.strip().capitalize())
+                subjects_per_row.append(new_subject)
 
-        new_teacher.save()
-        success_import += 1
+            new_teacher.first_name = row['First Name']
+            new_teacher.last_name = row['Last Name']
+            new_teacher.room_number = row['Room Number']
+            new_teacher.phone_number = row['Phone Number']
 
-    success_message = str(success_import) + " record(s) had successfully imported"
-    # failed = str(invalid_data) + " record(s) has invalid data"
+            if len(subjects_per_row) > 0:
+                for subject in subjects_per_row:
+                    new_teacher.subjects.add(Subject.objects.get(name=str(subject).strip().capitalize()))
 
-    # messages.error(request, failed)
-    messages.success(request, success_message)
+            if row['Profile picture'].isspace() or row['Profile picture'] is None or len(row['Profile picture']) == 0:
+                row['Profile picture'] = 'default.jpg'
+            elif os.path.isfile('images/images/' + row['Profile picture']) is False:
+                """
+                tried to ignore case sensitivity of image extensions if same extension `example.JPG & example.jpg`, but i found in linux systems FS both are completely different files
+                """
+                if row["Profile picture"] in zip_object.namelist():
+                    zip_object.extract(row["Profile picture"], 'images/images/')
+                else:
+                    row['Profile picture'] = 'default.jpg'
 
-    context = {}
-    return render(request, template, context)
+            new_teacher.image = 'images/' + row['Profile picture']
+
+            new_teacher.save()
+            success_import += 1
+
+        messages.success(request, str(success_import) + " record(s) had successfully imported")
+
+        context = {}
+        return render(request, template, context)

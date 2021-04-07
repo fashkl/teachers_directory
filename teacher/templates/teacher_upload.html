@@ -22,14 +22,17 @@
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="file">Upload CSV File</label>
-                    <input  required type="file" class="form-control-file" name="file" id="file" aria-describedby="fileHelp">
+                    <input required type="file" class="form-control-file" name="file" id="file"
+                           aria-describedby="fileHelp" accept=".csv,.CSV">
                     <small id="fileHelp" class="form-text text-muted">Only Accepts CSV file</small>
                 </div>
 
-{#                <div class="form-group">#}
-{#                    <label for="zip_file">Upload Zip File</label>#}
-{#                    <input required type="file" class="form-control-file" name="zip_file" id="zip_file" aria-describedby="fileHelp">#}
-{#                </div>#}
+                <div class="form-group">
+                    <label for="zip_file">Upload Zip File</label>
+                    <input required type="file" class="form-control-file" name="zip_file" id="zip_file"
+                           aria-describedby="zipFileHelp" accept=".zip">
+                    <small id="zipFileHelp" class="form-text text-muted">Only Accepts zip file</small>
+                </div>
 
                 <button class="btn btn-secondary mr-3" type="submit"> Upload</button>
             </form>
