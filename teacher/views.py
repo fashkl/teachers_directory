@@ -108,6 +108,7 @@ def teacher_upload(request):
     file_lines = csv_file.read().splitlines()
 
     reader = csv.DictReader(file_lines)
+    invalid_data = 0
     success_import = 0
 
     # opening the zip file in READ mode extract images files in media directory
@@ -119,16 +120,20 @@ def teacher_upload(request):
         for row in reader:
 
             if row['First Name'].isspace() or row['First Name'] is None or len(row['First Name']) == 0:
-                break
+                invalid_data += 1
+                continue
 
             if row['Last Name'].isspace() or row['Last Name'] is None or len(row['Last Name']) == 0:
-                break
+                invalid_data += 1
+                continue
 
             if row['Email Address'].isspace() or row['Email Address'] is None or len(row['Email Address']) == 0:
-                break
+                invalid_data += 1
+                continue
 
             if row['Phone Number'].isspace() or row['Phone Number'] is None or len(row['Phone Number']) == 0:
-                break
+                invalid_data += 1
+                continue
 
             # check if the teacher has 5 subjects or less
             subjects = row['Subjects taught'].split(',')
@@ -176,6 +181,7 @@ def teacher_upload(request):
             new_teacher.save()
             success_import += 1
 
+        messages.error(request, str(invalid_data) + " record(s) have missing data")
         messages.success(request, str(success_import) + " record(s) had successfully imported")
 
         context = {}
