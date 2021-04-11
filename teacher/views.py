@@ -114,9 +114,6 @@ def teacher_upload(request):
     # opening the zip file in READ mode extract images files in media directory
     with ZipFile(zip_file, 'r') as zip_object:
 
-        print(zip_object.namelist())
-        print(zip_object.infolist())
-
         for row in reader:
 
             if row['First Name'].isspace() or row['First Name'] is None or len(row['First Name']) == 0:
